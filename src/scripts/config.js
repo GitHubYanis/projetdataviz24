@@ -410,3 +410,37 @@ export const DEFAULT_FILTERS = Object.freeze({
   saison: 'all',
   continent: 'all'
 });
+
+export const VIZ1_TOP_N = 5;
+
+export const VIZ1_MODES = Object.freeze({
+  PERFORMANCE: 'performance',
+  DIVERSITY: 'diversity'
+});
+
+export const VIZ1_COUNTRY_COLORS = Object.freeze({
+  USA: '#1d3461',
+  URS: '#c0392b',
+  GBR: '#27ae60',
+  GER: '#e8a838',
+  CHN: '#0891b2',
+  FRG: '#e67e22',
+  RUS: '#c0392b',
+  AUS: '#8e44ad',
+  FRA: '#2980b9',
+  ITA: '#16a085',
+  JPN: '#e74c3c',
+  CAN: '#d35400',
+  GDR: '#2ecc71',
+  SWE: '#f1c40f',
+  HUN: '#e67e22',
+  NOR: '#1abc9c',
+  ROC: '#c0392b',
+  EUN: '#c0392b'
+});
+
+export const VIZ1_FALLBACK_PALETTE = Object.freeze([
+  '#6c5ce7', '#a29bfe', '#fd79a8', '#e17055',
+  '#00b894', '#00cec9', '#fdcb6e', '#74b9ff',
+  '#b2bec3', '#636e72'
+]);

@@ -1,47 +1,58 @@
-/**
- * Légende de la visualisation 1.
- *
- * TODO :
- * - adapter cette légende au design final de la visualisation 1
- */
-
-import { GENDER_COLORS, MEDAL_COLORS } from '../config.js';
+import { VIZ1_MODES } from '../config.js';
 import { createDomNode, resolveNode } from '../helper.js';
 
-/**
- * Rend une légende simple de debug.
- * @param {{ container: string|HTMLElement }} payload
- */
-export function renderViz1Legend({ container }) {
+export function renderViz1Legend({
+  container,
+  mode,
+  performanceData = [],
+  diversityData = []
+}) {
   const host = resolveNode(container);
+  host.innerHTML = '';
 
-  const title = createDomNode('h3', '', 'Légende de base');
-  const list = createDomNode('div', 'legend-list');
+  const box = createDomNode('div', 'viz1-legend-box');
+  const title = createDomNode(
+    'p',
+    'viz1-legend-title',
+    mode === VIZ1_MODES.PERFORMANCE ? 'Nations participantes' : 'Types de médaille'
+  );
+  box.append(title);
 
-  for (const [label, color] of Object.entries(MEDAL_COLORS)) {
-    list.append(createLegendRow(`${label} (médaille)`, color));
+  const list = createDomNode('div', 'viz1-legend-list');
+
+  if (mode === VIZ1_MODES.PERFORMANCE) {
+    for (const country of performanceData) {
+      list.append(
+        buildLegendRow(
+          country.color,
+          country.country,
+          country.country_code === '__OTHERS__'
+        )
+      );
+    }
+  } else {
+    const LABELS = {
+      GOLD: "Médaille d'or",
+      SILVER: "Médaille d'argent",
+      BRONZE: 'Médaille de bronze'
+    };
+    for (const ms of diversityData) {
+      list.append(buildLegendRow(ms.color, LABELS[ms.medal_type] ?? ms.medal_type, false));
+    }
   }
 
-  for (const [label, color] of Object.entries(GENDER_COLORS)) {
-    list.append(createLegendRow(`${label} (genre)`, color));
-  }
-
-  host.append(title, list);
+  box.append(list);
+  host.append(box);
 }
 
-/**
- * Crée une ligne de légende.
- * @param {string} label
- * @param {string} color
- * @returns {HTMLElement}
- */
-function createLegendRow(label, color) {
-  const row = createDomNode('div', 'legend-row');
-  const swatch = createDomNode('span', 'legend-swatch');
-  const text = createDomNode('span', '', label);
-
+function buildLegendRow(color, label, isOthers) {
+  const row = createDomNode('div', 'viz1-legend-row');
+  const swatch = createDomNode(
+    'span',
+    `viz1-legend-swatch${isOthers ? ' viz1-legend-swatch--others' : ''}`
+  );
   swatch.style.backgroundColor = color;
+  const text = createDomNode('span', 'viz1-legend-text', label);
   row.append(swatch, text);
-
   return row;
 }
