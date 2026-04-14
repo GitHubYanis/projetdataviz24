@@ -1,14 +1,9 @@
 /**
  * Prétraitement spécifique à la visualisation 3.
  *
- * Hypothèse de travail :
- * - cette visualisation croise participation et médailles
- * - on prépare deux sorties :
- *   1. lineData  : résumé par édition
- *   2. bubbleData: détail par pays / édition
- *
- * TODO :
- * - ajuster les métriques finales selon la narration retenue
+ * Sorties :
+ * 1. lineData  : résumé par édition — nb épreuves, disciplines, pays participants
+ * 2. bubbleData: détail par pays / édition — athlètes vs médailles
  */
 
 import { exportRowsToCsv, matchSharedFilters, sortByMany, safeTrim } from '../helper.js';
@@ -17,10 +12,11 @@ import { exportRowsToCsv, matchSharedFilters, sortByMany, safeTrim } from '../he
  * Prépare les sorties line + bubble de la visualisation 3.
  * @param {Array<Record<string, unknown>>} medals
  * @param {Array<Record<string, unknown>>} athletesCount
- * @param {{ year?: string|number, saison?: string, continent?: string }} filters
+ * @param {{ year?: string|number, saison?: string, continent?: string, discipline?: string }} filters
+ * @param {Array<Record<string, unknown>>} [hosts]
  * @returns {{ lineData: Array<Record<string, unknown>>, bubbleData: Array<Record<string, unknown>> }}
  */
-export function prepareViz3Data(medals, athletesCount, filters = {}) {
+export function prepareViz3Data(medals, athletesCount, filters = {}, hosts = []) {
   const filteredMedals = medals.filter((row) => matchSharedFilters(row, filters));
   const filteredAthletesCount = athletesCount.filter((row) => matchSharedFilters(row, filters));
 
@@ -83,9 +79,14 @@ export function prepareViz3Data(medals, athletesCount, filters = {}) {
     });
   }
 
+  const allMedalsForLine = medals.filter((row) => {
+    const saisonOk = !filters.saison || filters.saison === 'all' || safeTrim(row.saison).toLowerCase() === filters.saison;
+    return saisonOk;
+  });
+
   const lineAggregation = new Map();
 
-  for (const row of bubbleData) {
+  for (const row of allMedalsForLine) {
     const key = [row.year, row.game_slug, row.saison].join('|');
 
     if (!lineAggregation.has(key)) {
@@ -93,31 +94,60 @@ export function prepareViz3Data(medals, athletesCount, filters = {}) {
         year: row.year,
         game_slug: row.game_slug,
         saison: row.saison,
-        total_countries: 0,
-        total_athletes: 0,
-        total_medals: 0,
-        host_countries_with_medals: 0,
-        average_medals_per_country: 0
+        events: new Set(),
+        disciplines: new Set(),
+        countries: new Set()
       });
     }
 
     const target = lineAggregation.get(key);
-    target.total_countries += 1;
-    target.total_athletes += Number(row.nb_athletes);
-    target.total_medals += Number(row.medals_total);
 
-    if (row.is_host && Number(row.medals_total) > 0) {
-      target.host_countries_with_medals += 1;
+    if (safeTrim(row.event)) {
+      target.events.add([row.game_slug, row.discipline, row.event, row.event_gender].join('|'));
+    }
+    if (safeTrim(row.discipline)) {
+      target.disciplines.add(safeTrim(row.discipline));
+    }
+    if (safeTrim(row.country_code)) {
+      target.countries.add(safeTrim(row.country_code));
     }
   }
 
-  const lineData = [...lineAggregation.values()].map((row) => ({
-    ...row,
-    average_medals_per_country:
-      row.total_countries > 0
-        ? Number((row.total_medals / row.total_countries).toFixed(4))
-        : 0
-  }));
+  const allAthletesForLine = athletesCount.filter((row) => {
+    const saisonOk = !filters.saison || filters.saison === 'all' || safeTrim(row.saison).toLowerCase() === filters.saison;
+    return saisonOk;
+  });
+
+  for (const row of allAthletesForLine) {
+    const key = [row.year, row.game_slug, row.saison].join('|');
+    if (lineAggregation.has(key)) {
+      lineAggregation.get(key).countries.add(safeTrim(row.country_code));
+    } else {
+      lineAggregation.set(key, {
+        year: row.year,
+        game_slug: row.game_slug,
+        saison: row.saison,
+        events: new Set(),
+        disciplines: new Set(),
+        countries: new Set([safeTrim(row.country_code)])
+      });
+    }
+  }
+
+  const hostBySlug = new Map(hosts.map((h) => [safeTrim(h.game_slug), h]));
+
+  const lineData = [...lineAggregation.values()].map((row) => {
+    const host = hostBySlug.get(safeTrim(row.game_slug));
+    return {
+      year: row.year,
+      game_slug: row.game_slug,
+      saison: row.saison,
+      host_city: host?.host_country ?? '',
+      nb_events: row.events.size,
+      nb_disciplines: row.disciplines.size,
+      nb_countries: row.countries.size
+    };
+  });
 
   return {
     lineData: sortByMany(lineData, [(row) => Number(row.year)]),

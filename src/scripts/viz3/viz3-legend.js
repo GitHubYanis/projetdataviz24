@@ -1,31 +1,41 @@
 /**
- * Légende de la visualisation 3.
- *
- * TODO :
- * - adapter cette légende à la future visualisation finale
+ * Légende de la visualisation 3 — continents.
  */
 
 import { CONTINENT_COLORS } from '../config.js';
 import { createDomNode, resolveNode } from '../helper.js';
 
 /**
- * Rend une légende simple par continent.
+ * Rend la légende continents.
  * @param {{ container: string|HTMLElement }} payload
  */
 export function renderViz3Legend({ container }) {
   const host = resolveNode(container);
-  const title = createDomNode('h3', '', 'Légende continents');
-  const list = createDomNode('div', 'legend-list');
 
-  for (const [label, color] of Object.entries(CONTINENT_COLORS)) {
-    const row = createDomNode('div', 'legend-row');
-    const swatch = createDomNode('span', 'legend-swatch');
-    const text = createDomNode('span', '', label);
+  const box = createDomNode('div', 'viz3-legend-box');
+  const title = createDomNode('p', 'viz3-legend-title', 'Continents');
+  const list = createDomNode('div', 'viz3-legend-list');
 
+  const LABELS = {
+    'Africa':        'Afrique',
+    'North America': 'Amér. du Nord',
+    'South America': 'Amér. du Sud',
+    'Asia':          'Asie',
+    'Europe':        'Europe',
+    'Oceania':       'Océanie',
+    'Other':         'Autre'
+  };
+
+  for (const [key, color] of Object.entries(CONTINENT_COLORS)) {
+    if (key === 'Other') continue;
+    const row = createDomNode('div', 'viz3-legend-row');
+    const swatch = createDomNode('span', 'viz3-legend-swatch');
     swatch.style.backgroundColor = color;
+    const text = createDomNode('span', 'viz3-legend-text', LABELS[key] ?? key);
     row.append(swatch, text);
     list.append(row);
   }
 
-  host.append(title, list);
+  box.append(title, list);
+  host.append(box);
 }

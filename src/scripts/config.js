@@ -394,13 +394,13 @@ export const SVG_DIMENSIONS = Object.freeze({
     margin: { top: 64, right: 32, bottom: 64, left: 72 }
   },
   viz3Line: {
-    width: 880,
-    height: 420,
-    margin: { top: 48, right: 24, bottom: 56, left: 72 }
+    width: 900,
+    height: 440,
+    margin: { top: 48, right: 56, bottom: 56, left: 72 }
   },
   viz3Bubble: {
-    width: 880,
-    height: 560,
+    width: 900,
+    height: 600,
     margin: { top: 48, right: 24, bottom: 56, left: 72 }
   }
 });

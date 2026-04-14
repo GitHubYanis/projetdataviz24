@@ -103,7 +103,8 @@ function rerenderAll() {
   appState.currentVizData.viz3 = prepareViz3Data(
     appState.rawData.medals,
     appState.rawData.athletesCount,
-    filters
+    filters,
+    appState.rawData.hosts
   );
 
   renderViz1({

@@ -1,39 +1,64 @@
 /**
- * Tooltip de la visualisation 3.
- *
- * TODO :
- * - réutiliser ce tooltip sur les marks line et bubble finaux
+ * Tooltips de la visualisation 3.
+ * Deux instances séparées : une pour le line chart, une pour le bubble chart.
  */
 
 import { createDomNode } from '../helper.js';
 
-const TOOLTIP_ID = 'viz3-tooltip';
+const LINE_TOOLTIP_ID   = 'viz3-line-tooltip';
+const BUBBLE_TOOLTIP_ID = 'viz3-bubble-tooltip';
 
-/**
- * Crée ou retourne le tooltip dédié à la visualisation 3.
- * @returns {{ node: HTMLElement, show: (html: string, x: number, y: number) => void, hide: () => void }}
- */
-export function createViz3Tooltip() {
-  let tooltipNode = document.getElementById(TOOLTIP_ID);
+function makeTooltip(id) {
+  let node = document.getElementById(id);
 
-  if (!tooltipNode) {
-    tooltipNode = createDomNode('div', 'tooltip hidden');
-    tooltipNode.id = TOOLTIP_ID;
-    document.body.append(tooltipNode);
+  if (!node) {
+    node = createDomNode('div', 'tooltip viz3-tooltip hidden');
+    node.id = id;
+    document.body.append(node);
   }
 
   return {
-    node: tooltipNode,
+    node,
 
     show(html, x, y) {
-      tooltipNode.innerHTML = html;
-      tooltipNode.style.left = `${x + 12}px`;
-      tooltipNode.style.top = `${y + 12}px`;
-      tooltipNode.classList.remove('hidden');
+      node.innerHTML = html;
+      node.classList.remove('hidden');
+      this._place(x, y);
+    },
+
+    move(x, y) {
+      if (!node.classList.contains('hidden')) {
+        this._place(x, y);
+      }
     },
 
     hide() {
-      tooltipNode.classList.add('hidden');
+      node.classList.add('hidden');
+    },
+
+    _place(x, y) {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const w  = node.offsetWidth  || 260;
+      const h  = node.offsetHeight || 120;
+      const pad = 14;
+
+      let left = x + pad;
+      let top  = y + pad;
+
+      if (left + w > vw - pad) left = x - w - pad;
+      if (top  + h > vh - pad) top  = y - h - pad;
+
+      node.style.left = `${left}px`;
+      node.style.top  = `${top}px`;
     }
   };
+}
+
+export function createViz3LineTooltip() {
+  return makeTooltip(LINE_TOOLTIP_ID);
+}
+
+export function createViz3BubbleTooltip() {
+  return makeTooltip(BUBBLE_TOOLTIP_ID);
 }
