@@ -25,7 +25,7 @@ export function renderViz2Legend({ container }) {
 
   const legendBox = createDomNode('div', 'viz2-legend-box');
 
-  const title = createDomNode('h4', 'legend-title', 'Épreuves');
+  const title = createDomNode('h4', 'legend-title', 'Légende');
   legendBox.appendChild(title);
 
   const list = createDomNode('div', 'legend-list');

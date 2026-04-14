@@ -18,9 +18,9 @@ import {
   resolveNode
 } from '../helper.js';
 
-const MARGIN = { top: 60, right: 280, bottom: 60, left: 80 };
+const MARGIN = { top: 90, right: 320, bottom: 60, left: 100 };
 const WIDTH = 900;
-const HEIGHT = 700;
+const HEIGHT = 900;
 
 const SEASON_DISCIPLINES = {
   summer: new Set(['Athletics', 'Swimming', 'Gymnastics', 'Boxing', 'Wrestling', 'Basketball', 'Football', 'Tennis',
@@ -53,12 +53,11 @@ export function renderViz2({ containerSelector = '#viz2-root', data = {} } = {})
   const wrapper = createDomNode('div', 'viz2-wrapper');
   const mainArea = createDomNode('div', 'viz2-main-area');
 
-  const title = createDomNode('h3', 'viz2-title', 'Évolution des épreuves masculines et féminines/mixtes par éditions');
-  const subtitle = createDomNode('p', 'viz2-subtitle', 'des Jeux Olympiques (1896-2024)');
-  mainArea.append(title, subtitle);
 
+  const chartWrapper = createDomNode('div', 'chart-wrapper');
   const chartContainer = createDomNode('div', 'chart-container');
-  mainArea.appendChild(chartContainer);
+  chartWrapper.appendChild(chartContainer);
+  mainArea.appendChild(chartWrapper);
 
   const state = {
     selectedDisciplines: [],
@@ -139,7 +138,7 @@ export function renderViz2({ containerSelector = '#viz2-root', data = {} } = {})
     const yScale = d3.scaleBand()
       .domain(filteredData.map((d) => d.year))
       .range([0, innerHeight])
-      .padding(0.15);
+      .padding(0.5);
 
     const barHeight = yScale.bandwidth();
 
@@ -226,7 +225,10 @@ export function renderViz2({ containerSelector = '#viz2-root', data = {} } = {})
       .ticks(5)
       .tickFormat((d) => formatInteger(d));
 
+    const allYears = filteredData.map(d => d.year);
+    const tickYears = allYears.filter((_, i) => i % 2 === 0);
     const yAxis = d3.axisLeft(yScale)
+      .tickValues(tickYears)
       .tickFormat((d) => formatYear(d));
 
     g.append('g')
@@ -249,33 +251,45 @@ export function renderViz2({ containerSelector = '#viz2-root', data = {} } = {})
       .attr('x2', innerWidth / 2)
       .attr('y1', 0)
       .attr('y2', innerHeight)
-      .attr('stroke', '#cbd5e1')
-      .attr('stroke-width', 2);
+      .attr('stroke', '#94a3b8')
+      .attr('stroke-width', 1.5);
 
     g.append('text')
       .attr('class', 'axis-label')
-      .attr('x', innerWidth / 4)
-      .attr('y', innerHeight + 40)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#475569')
-      .text('Nombre d\'épreuves');
-
-    g.append('text')
-      .attr('class', 'axis-label')
-      .attr('x', (innerWidth * 3) / 4)
-      .attr('y', innerHeight + 40)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#475569')
-      .text('Nombre d\'épreuves');
-
-    g.append('text')
-      .attr('class', 'axis-label zero-label')
       .attr('x', innerWidth / 2)
-      .attr('y', -30)
+      .attr('y', innerHeight + 40)
       .attr('text-anchor', 'middle')
-      .style('font-size', '12px')
-      .style('fill', '#64748b')
-      .text('0');
+      .attr('fill', '#475569')
+      .text('Nombre d\'épreuves');
+
+    g.append('text')
+      .attr('class', 'axis-label')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -innerHeight / 2)
+      .attr('y', -60)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#475569')
+      .text('Année');
+
+    const titleGroup = g.append('g').attr('class', 'viz2-chart-title');
+
+    titleGroup.append('text')
+      .attr('x', innerWidth / 2)
+      .attr('y', -55)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '17px')
+      .style('font-weight', '600')
+      .style('fill', '#0f172a')
+      .text('Évolution du nombre d\'épreuves masculines, féminines et mixtes');
+
+    titleGroup.append('text')
+      .attr('x', innerWidth / 2)
+      .attr('y', -35)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '17px')
+      .style('font-weight', '600')
+      .style('fill', '#0f172a')
+      .text('aux Jeux Olympiques entre 1896 et 2024');
   }
 
   function onFilterChange() {
@@ -287,7 +301,7 @@ export function renderViz2({ containerSelector = '#viz2-root', data = {} } = {})
 
   const legendContainer = createDomNode('div', 'viz2-legend-container');
   renderViz2Legend({ container: legendContainer });
-  mainArea.appendChild(legendContainer);
+  chartWrapper.appendChild(legendContainer);
 
   wrapper.append(mainArea);
   container.append(wrapper);
