@@ -1084,6 +1084,12 @@ h3 {
   opacity: 0.55;
 }
 
+.viz1-legend-swatch--host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .viz1-legend-text {
   font-size: 0.88rem;
   font-weight: 500;
